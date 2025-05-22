@@ -77,7 +77,7 @@ class Card {
                 return (totalTrucoValues - 1) - i;
             }
         }
-        return -1; // Carta no encontrada
+        return { success: false, messsage: 'Carta no encontrada' }; // Carta no encontrada
     }
 
     getEnvidoValue() {

@@ -37,9 +37,9 @@ class Player {
 
         if (index > -1) {
             this.hand.splice(index, 1);
-            return true;
+            return { success: true, message: `Se eliminó la carta de la mano correctamente. ${this.username}:${this.id} -> ${card_code}`, data: this.hand };
         }
-        return false;
+        return { success: false, message: `No se encontró la carta a eliminar de la mano.`, data: this.hand };
     }
 
     resetHand() {
@@ -60,11 +60,12 @@ class Player {
 
     // Métodos para gestionar los cantos
     sayTruco() {
-        if (!this.acceptedTruco) return 'No se puede cantar el truco.';
-        if (!this.turn) return 'No es tu turno para cantar el truco.';
-        if (this.trucoSaid) return 'Ya has cantado el truco durante esta mano.';
+        if (!this.acceptedTruco) return { success: false, message: `No se pudo cantar truco.`, data: null };
+        if (!this.turn) return { success: false, message: `No es tu turno para cantar truco.`, data: null };
+        if (this.trucoSaid) return { success: false, message: `Ya has cantado truco.`, data: null };
 
         this.trucoSaid = true;
+        return { success: true, message: `Se cantó truco.`, data: Player };
     }
 
     resetTrucoSaid() {
@@ -72,11 +73,12 @@ class Player {
     }
 
     sayEnvido() {
-        if (!this.acceptedEnvido) return 'No se puede cantar el envido.';
-        if (!this.turn) return 'No es tu turno para cantar el envido.';
-        if (this.envidoSaid) return 'Ya has cantado el envido durante esta mano.';
+        if (!this.acceptedEnvido) return { success: false, message: `No se pudo cantar envido.`, data: null };
+        if (!this.turn) return { success: false, message: `No es tu turno para cantar envido.`, data: null };
+        if (this.envidoSaid) return { success: false, message: `Ya has cantado envido.`, data: null };
 
         this.envidoSaid = true;
+        return { success: true, message: `Se cantó envido.`, data: Player };
     }
 
     resetEnvidoSaid() {

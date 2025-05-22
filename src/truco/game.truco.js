@@ -36,25 +36,23 @@ class Truco {
     }
 
     addPlayer(uId, uName) {
-        if (this.players.size < 2 && !this.players.has(uId)) {
-            const newPlayer = new Player(uId, uName);
-            this.players.set(uId, newPlayer);
-            return true;
-        }
-        return false;
+        if (this.players.size >= 2) return { success: false, message: `La partida ya está llena.`, data: null };
+        if (this.players.has(uId)) return { success: false, message: `El usuario ya se encuentra en la partida.`, data: null };
+
+        const newPlayer = new Player(uId, uName);
+        this.players.set(uId, newPlayer);
+        return { success: true, message: `Usuario ${uName}:${uId} añadido en la partida ${this.gameId}`, data: newPlayer };
     }
 
     getAnotherPlayer(uId) {
         for (const playerId of this.players.keys()) { // Buscamos al otro usuario de la partida.
-            if (playerId !== uId) return this.players.get(playerId);
+            if (playerId !== uId) return { success: true, message: `Se obtuvo el otro usuario que está en la partida a partir de ${this.players.get(uId).username}:${uId}.\nUsuario obtenido -> ${this.players.get(playerId).username}:${playerId}`, data: this.players.get(playerId) };
         }
+        return { success: false, message: `No se pudo obtener el usuario de la partida.`, data: false };
     }
 
     getTanto(uId) {
-        if (!this.players.has(uId)) {
-            console.error(`Error: Jugador con ID ${uId} no encontrado.`);
-            return -1;
-        }
+        if (!this.players.has(uId)) return { success: false, message: `No se pudo encontrar el usuario -> ${uId}.`, data: false };
         const player = this.players.get(uId);
 
         let maxTanto = 0; // Guardará el tanto más alto encontrado
@@ -108,15 +106,11 @@ class Truco {
             maxTanto = highestEnvidoValue;
         }
 
-        console.log(`Calculado tanto para ${player.name}: ${maxTanto}`);
-        return maxTanto;
+        return { success: true, message: `Tanto para ${player.name}:${uId} -> ${maxTanto}`, data: maxTanto };
     }
 
     repartirCartas() {
-        if (this.players.size !== 2) {
-            console.warn("No se pueden repartir cartas: número de jugadores incorrecto.");
-            return false;
-        }
+        if (this.players.size !== 2) return { success: false, message: `La cantidad de usuarios en la partida (${this.players.size}) no es la permitida para realizar esta acción.`, data: null };
 
         const playersIterator = this.players.values();
         const firstPlayer = playersIterator.next().value;
@@ -126,6 +120,9 @@ class Truco {
              console.error("Error: Mazo de cartas no inicializado o insuficiente para repartir.");
              return false;
         }
+
+        if (!this.cards) return { success: false, message: `El mazo de la partida no se encuentra inicializado.`, data: null };
+        if (this.cards.length < 6) return { success: false, message: `Insuficientes cartas para repartir.`, data: null };
 
         for (let i = 0; i < 3; i++) {
             secondPlayer.setHand(new Card(this.cards.shift()));
@@ -139,7 +136,7 @@ class Truco {
         secondPlayer.isHand = true;
         secondPlayer.turn = true;
 
-        return true;
+        return { success: true, message: `Cartas repartidas a los usuarios.`, data: { firstPlayer, secondPlayer } };
     }
 
     matarMano(playerId) {
@@ -147,24 +144,23 @@ class Truco {
         const player = this.players.get(playerId);
 
         // --- Verificaciones de existencia de jugadores ---
-        if (!player) return false;
-        if (!anotherPlayer) return false;
+        if (!player || !anotherPlayer) return { success: false, message: `No se obtuvieron los usuarios de la partida correctamente.`, data: null };
 
 
         const cardInTable = player.cardInTable; // Esto busca en la mano del jugador
         const anotherCardInTable = anotherPlayer.cardInTable; // Esto busca en la mano del otro jugador
 
 
-        if (!cardInTable || !anotherCardInTable) return false; // Una o ambas cartas no se encontraron
+        if (!cardInTable || !anotherCardInTable) return { success: false, message: `No se obtuvieron las cartas correctamente.`, data: null }; // Una o ambas cartas no se encontraron
 
         player.setCardInTable(null);
         anotherPlayer.setCardInTable(null);
 
         if (cardInTable.trucoValue > anotherCardInTable.trucoValue || (this.parda && cardInTable.trucoValue >= anotherCardInTable.trucoValue)) {
-            return { uId: player.id, card_win: cardInTable.card_name, card_defeat: anotherCardInTable.card_name };
+            return { success: true, message: `${player.username} mató la carta de ${anotherPlayer.username}.`, data: { uId: player.id, card_win: cardInTable.card_name, card_defeat: anotherCardInTable.card_name } };
         }
         else {
-            return { uId: anotherCardInTable.id, card_win: anotherCardInTable.card_name, card_defeat: cardInTable.card_name };
+            return { success: true, message: `${anotherPlayer.username} mató la carta de ${player.username}.`, data: { uId: anotherPlayer.id, card_win: anotherCardInTable.card_name, card_defeat: cardInTable.card_name } };
         }
     }
 
@@ -173,7 +169,9 @@ class Truco {
         const anotherPlayer = this.getAnotherPlayer(playerId);
         const card = new Card(card_code);
 
-        if (!player.turn || player.hand.length < 1 || !player.hasCard(card_code)) return false;
+        if (!player.turn) return { success: false, message: `No es el turno correcto.`, data: null };
+        if (!player.hand.length < 1) return { success: false, message: `No hay cartas en la mano.`, data: null };
+        if (!player.hasCard(card_code)) return { success: false, message: `No se encontró la carta a jugar en la mano.`, data: null };
 
         player.removeFromHand(card_code);
 
@@ -182,7 +180,7 @@ class Truco {
 
         this.table.push(card_code);
         player.setCardInTable(card);
-        return card;
+        return { success: true, message: `Se jugó la carta. ${player.username}:${player.id} -> ${card.card_name}`, data: card };
     }
 
     /*cantarTruco(playerId) {
