@@ -1,0 +1,38 @@
+# Directorios de Node.js
+node_modules/
+.pnp/
+.pnp.js/
+
+# Archivos de entorno
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+
+# Dependencias de npm/yarn
+package-lock.json
+yarn.lock # Si usas yarn
+
+# Archivos de caché del editor (ej. VS Code)
+.vscode/
+.DS_Store # macOS
+Thumbs.db # Windows
+
+/dist/
+/build/
+*.tmp
+*.temp
+
+.idea/ # IntelliJ IDEA
+*.iml # IntelliJ IDEA
+
+.eslintcache
+
+gen-lang-client-0224081587-04256cabbc92.json
