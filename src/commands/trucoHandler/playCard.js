@@ -13,26 +13,25 @@ module.exports = async (e, card_code) => {
     }
 
     if (!game) return e.editReply({ content: `Primero debes unirte a una partida de truco.\n¡Utiliza el comando\`\`/truco\`\` y unete o crea una!.`, flags: MessageFlags.Ephemeral });
-    if (!game.players.get(e.user.id).turn) return e.editReply({ content: `No es tu turno.`, flags: MessageFlags.Ephemeral });
-    if (!card_code) return e.editReply({ content: `Hubo un error al intentar obtener la carta.`, flags: MessageFlags.Ephemeral });
 
     const cardPlayed = game.jugarCarta(e.user.id, card_code);
-    if (!cardPlayed) return e.editReply({ content: `No se pudo jugar la carta.`, flags: MessageFlags.Ephemeral });
 
-    const card_name = cardPlayed.getApodo() ? `${cardPlayed.getApodo()}: \`${cardPlayed.card_name}\`` : cardPlayed.card_name;
-    const anotherPlayer = game.getAnotherPlayer(e.user.id);
+    if (!cardPlayed.success) return e.editReply({ content: cardPlayed.message, flags: MessageFlags.Ephemeral });
+
+    const card = cardPlayed.data;
+
+    const card_name = card.getApodo() ? `${card.getApodo()}: \`${card.card_name}\`` : card.card_name;
+
+    const anotherPlayer_data = game.getAnotherPlayer(e.user.id);
+    const anotherPlayer = anotherPlayer_data.data;
+    if (!anotherPlayer_data.success) return await e.reply({ content: anotherPlayer_data.message, flags: MessageFlags.Ephemeral });
 
     e.followUp({ content: `<@${anotherPlayer.id}>, ${e.user.username} ha jugado un ${card_name}.` });
 
     if (game.table.length % 2 == 0) {
         const winRound = game.matarMano(e.user.id);
         console.log(winRound);
-        if (!winRound) {
-            return e.editReply({ content: `No se pudo completar la acción para matar la carta del oponente.`, flags: MessageFlags.Ephemeral });
-        }
-        if (winRound.uId === e.user.id) {
-            return e.followUp({ content: `<@${anotherPlayer.id}>, ${e.user.username} te ha matado la carta \`${winRound.card_defeat}\` con un \`${winRound.card_win}\`.` });
-        }
-        e.followUp({ content: `<@${anotherPlayer.id}>, has matado la carta de ${e.user.username} \`${winRound.card_defeat}\` con un \`${winRound.card_win}\`.` });
+        if (!winRound.success) return e.editReply({ content: winRound.message, flags: MessageFlags.Ephemeral });
+        return e.followUp({ content: winRound.message });
     }
 };

@@ -129,9 +129,9 @@ class Truco {
             firstPlayer.setHand(new Card(this.cards.shift()));
         }
 
-        firstPlayer.tanto = this.getTanto(firstPlayer.id);
+        firstPlayer.tanto = this.getTanto(firstPlayer.id).data;
 
-        secondPlayer.tanto = this.getTanto(secondPlayer.id);
+        secondPlayer.tanto = this.getTanto(secondPlayer.id).data;
 
         secondPlayer.isHand = true;
         secondPlayer.turn = true;
@@ -140,7 +140,7 @@ class Truco {
     }
 
     matarMano(playerId) {
-        const anotherPlayer = this.getAnotherPlayer(playerId);
+        const anotherPlayer = this.getAnotherPlayer(playerId).data;
         const player = this.players.get(playerId);
 
         // --- Verificaciones de existencia de jugadores ---
@@ -149,7 +149,6 @@ class Truco {
 
         const cardInTable = player.cardInTable; // Esto busca en la mano del jugador
         const anotherCardInTable = anotherPlayer.cardInTable; // Esto busca en la mano del otro jugador
-
 
         if (!cardInTable || !anotherCardInTable) return { success: false, message: `No se obtuvieron las cartas correctamente.`, data: null }; // Una o ambas cartas no se encontraron
 
@@ -166,11 +165,11 @@ class Truco {
 
     jugarCarta(playerId, card_code) {
         const player = this.players.get(playerId);
-        const anotherPlayer = this.getAnotherPlayer(playerId);
+        const anotherPlayer = this.getAnotherPlayer(playerId).data;
         const card = new Card(card_code);
 
         if (!player.turn) return { success: false, message: `No es el turno correcto.`, data: null };
-        if (!player.hand.length < 1) return { success: false, message: `No hay cartas en la mano.`, data: null };
+        if (player.hand.length < 1) return { success: false, message: `No hay cartas en la mano.`, data: null };
         if (!player.hasCard(card_code)) return { success: false, message: `No se encontró la carta a jugar en la mano.`, data: null };
 
         player.removeFromHand(card_code);

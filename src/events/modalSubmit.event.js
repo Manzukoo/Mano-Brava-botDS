@@ -31,21 +31,21 @@ module.exports = {
                 return await e.reply({ content: `La partida con ID: \`${game_id}\` no existe.`, flags: MessageFlags.Ephemeral });
             }
 
-            if (game.players.size > 1) {
-                return await e.reply({ content: `La partida a la que has intentado unirte está llena. \`2/2\``, flags: MessageFlags.Ephemeral });
-            }
+            const addPlayer_data = game.addPlayer(e.user.id, e.user.username);
+            if (!addPlayer_data.success) return await e.reply({ content: addPlayer_data.message, flags: MessageFlags.Ephemeral });
 
-            game.addPlayer(e.user.id, e.user.username);
-            const another_player = game.getAnotherPlayer(e.user.id);
-            const repartir = game.repartirCartas();
+            const anotherPlayer_data = game.getAnotherPlayer(e.user.id);
+            const another_player = anotherPlayer_data.data;
+            if (!anotherPlayer_data.success) return await e.reply({ content: anotherPlayer_data.message, flags: MessageFlags.Ephemeral });
+
+            const repartir_data = game.repartirCartas();
+            if (!repartir_data.success) return await e.reply({ content: repartir_data.message, flags: MessageFlags.Ephemeral });
+
             await e.update({ content: `Te has unido a la partida de ${another_player.username}.`, components: [menu(e)] });
             await e.followUp({
                 content: `<@${another_player.id}>, <@${e.user.id}> se ha unido a tu partida.`,
             });
-            if (repartir) console.log("Se repartió.");
-            else console.log("No se repartió.");
 
-            console.log(game.players);
         }
     },
 };
